@@ -1,0 +1,121 @@
+local player = game.Players.LocalPlayer
+local Players = game:GetService("Players")
+
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- open button
+local openButton = Instance.new("TextButton")
+openButton.Parent = gui
+openButton.Size = UDim2.new(0,120,0,40)
+openButton.Position = UDim2.new(0,20,0,200)
+openButton.BackgroundColor3 = Color3.fromRGB(98,14,255)
+openButton.Text = "Open KAKA HUB"
+openButton.TextColor3 = Color3.fromRGB(255,255,255)
+openButton.Visible = false
+
+-- main frame
+local frame = Instance.new("Frame")
+frame.Parent = gui
+frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+frame.Size = UDim2.new(0,220,0,220)
+frame.Position = UDim2.new(0.5,-110,0.5,-110)
+frame.Active = true
+frame.Draggable = true
+
+-- title
+local title = Instance.new("TextLabel")
+title.Parent = frame
+title.Size = UDim2.new(1,0,0,30)
+title.BackgroundColor3 = Color3.fromRGB(40,40,40)
+title.Text = "KAKA HUB"
+title.TextColor3 = Color3.fromRGB(125,27,255)
+
+-- close button
+local close = Instance.new("TextButton")
+close.Parent = frame
+close.Size = UDim2.new(0,80,0,30)
+close.Position = UDim2.new(0.5,-40,0,40)
+close.Text = "Close Menu"
+close.BackgroundColor3 = Color3.fromRGB(255,46,0)
+close.TextColor3 = Color3.fromRGB(255,255,255)
+
+-- kill button
+local killbutton = Instance.new("TextButton")
+killbutton.Parent = frame
+killbutton.Size = UDim2.new(0,180,0,40)
+killbutton.Position = UDim2.new(0.5,-90,0,90)
+killbutton.Text = "Death Bullet : OFF"
+killbutton.BackgroundColor3 = Color3.fromRGB(98,14,255)
+killbutton.TextColor3 = Color3.fromRGB(255,255,255)
+
+-- close menu
+close.MouseButton1Click:Connect(function()
+	frame.Visible = false
+	openButton.Visible = true
+end)
+
+-- open menu
+openButton.MouseButton1Click:Connect(function()
+	frame.Visible = true
+	openButton.Visible = false
+end)
+
+-- kill script
+local enabled = false
+
+local function getClosestPlayer()
+	local closest
+	local distance = math.huge
+	local myChar = player.Character
+
+	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then
+		return nil
+	end
+
+	for _,v in pairs(Players:GetPlayers()) do
+		if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+			local dist = (myChar.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+			if dist < distance then
+				distance = dist
+				closest = v
+			end
+		end
+	end
+
+	return closest
+end
+
+task.spawn(function()
+	while true do
+		task.wait(0.005)
+
+		if enabled then
+			local char = player.Character
+			local target = getClosestPlayer()
+
+			if char and target and target.Character then
+				local pos = target.Character.HumanoidRootPart.Position
+
+				for _,tool in ipairs(player.Backpack:GetChildren()) do
+					if tool:IsA("Tool") and tool:FindFirstChild("shot") then
+						tool.Parent = char
+						tool.shot:FireServer(pos)
+						tool.shot:FireServer(pos)
+						tool.Parent = player.Backpack
+					end
+				end
+			end
+		end
+	end
+end)
+
+killbutton.MouseButton1Click:Connect(function()
+	enabled = not enabled
+
+	if enabled then
+		killbutton.Text = "กระสุนสั่งตาย : ปิด"
+	else
+		killbutton.Text = "กระสุนสั่งตาย : เปิด"
+	end
+end)
