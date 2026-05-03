@@ -1,0 +1,190 @@
+--// Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+
+--// Remote
+local remote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GetItemVIP")
+
+--// ITEM
+local ITEM_NAME = "JuggernautArmorVest"
+
+--========================
+-- GUI
+--========================
+local gui = Instance.new("ScreenGui")
+gui.Name = "HealGui"
+gui.ResetOnSpawn = false
+gui.Parent = game.CoreGui
+
+local bar = Instance.new("Frame")
+bar.Size = UDim2.new(0, 240, 0, 35)
+bar.Position = UDim2.new(1, -250, 0, 10)
+bar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+bar.BorderSizePixel = 0
+bar.Visible = false
+bar.Parent = gui
+
+local text = Instance.new("TextLabel")
+text.Size = UDim2.new(1, 0, 1, 0)
+text.BackgroundTransparency = 1
+text.TextColor3 = Color3.fromRGB(255, 255, 255)
+text.TextScaled = true
+text.Font = Enum.Font.GothamBold
+text.Text = ""
+text.Parent = bar
+
+--========================
+-- STATES
+--========================
+local healEnabled = false
+local healTriggered = false
+local savedCFrame = nil
+local guiBusy = false
+
+local targetCFrame = CFrame.new(19.2, 75.5, 302.4)
+
+local cooldown = {}
+
+local function canRun(cmd)
+	if cooldown[cmd] then return false end
+	cooldown[cmd] = true
+	task.delay(1, function()
+		cooldown[cmd] = nil
+	end)
+	return true
+end
+
+--========================
+-- GUI FUNCTION
+--========================
+local function showGui(message, stayTime)
+	if guiBusy then return end
+	guiBusy = true
+
+	text.Text = message
+	bar.Visible = true
+	bar.Position = UDim2.new(1, -250, 0, 10)
+
+	task.delay(stayTime or 2, function()
+		bar.Visible = false
+		guiBusy = false
+	end)
+end
+
+--🔥 START MESSAGE
+task.wait(0.5)
+showGui("เปิดใช้งาน Holiday V1 แล้ว 🟢", 2)
+
+--========================
+-- HEAL SYSTEM
+--========================
+RunService.RenderStepped:Connect(function()
+	if not healEnabled then return end
+
+	local char = player.Character
+	if not char then return end
+
+	local humanoid = char:FindFirstChild("Humanoid")
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not humanoid or not hrp then return end
+
+	if humanoid.Health <= 10 and not healTriggered then
+		healTriggered = true
+		savedCFrame = hrp.CFrame
+		hrp.CFrame = targetCFrame
+	end
+
+	if humanoid.Health > 10 and healTriggered then
+		healTriggered = false
+		if savedCFrame then
+			hrp.CFrame = savedCFrame
+		end
+	end
+end)
+
+player.CharacterAdded:Connect(function()
+	healTriggered = false
+	savedCFrame = nil
+end)
+
+--========================
+-- ITEM SYSTEM (!hp 1)
+--========================
+local function runItemScript()
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	for i = 1, 2 do
+		remote:FireServer(ITEM_NAME)
+		task.wait(0.15)
+	end
+
+	local function findTool(name)
+		local t = player.Backpack:FindFirstChild(name)
+		if t and t:IsA("Tool") then return t end
+
+		t = character:FindFirstChild(name)
+		if t and t:IsA("Tool") then return t end
+
+		return nil
+	end
+
+	local tool = findTool(ITEM_NAME)
+
+	if not tool then
+		local timeout = tick() + 2
+		repeat
+			task.wait(0.1)
+			tool = findTool(ITEM_NAME)
+		until tool or tick() > timeout
+	end
+
+	if tool then
+		humanoid:EquipTool(tool)
+	end
+
+	task.wait(0.3)
+
+	if tool then
+		for i = 1, 2 do
+			tool:Activate()
+			task.wait(0.1)
+		end
+	end
+
+	task.wait(0.2)
+	humanoid:UnequipTools()
+
+	task.wait(0.2)
+	remote:FireServer(ITEM_NAME)
+end
+
+--========================
+-- COMMAND SYSTEM
+--========================
+player.Chatted:Connect(function(msg)
+	msg = msg:lower()
+
+	if msg == "!heal" and canRun("heal") then
+		healEnabled = true
+		showGui("!heal เปิดใช้งานแล้ว ✅")
+
+	elseif msg == "!unheal" and canRun("unheal") then
+		healEnabled = false
+		healTriggered = false
+		savedCFrame = nil
+		showGui("!heal ปิดใช้งาน ❌")
+
+	elseif msg == "!hp 1" and canRun("hp1") then
+		showGui("!hp 1 กำลังทำงาน 🟡")
+
+		task.spawn(function()
+			runItemScript()
+			task.wait(0.2)
+			showGui("!hp 1 สำเร็จ ✅")
+		end)
+	end
+end)
