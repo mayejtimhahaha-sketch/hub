@@ -2,14 +2,13 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local player = Players.LocalPlayer
 
 --// Remote
 local remote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GetItemVIP")
 
---// ITEM
+--// ITEMS
 local ITEM_NAME = "JuggernautArmorVest"
 local AUTOHEAL_ITEM = "HealthyLeaf"
 local HP_PERCENT = 0.3
@@ -36,7 +35,6 @@ text.BackgroundTransparency = 1
 text.TextColor3 = Color3.fromRGB(255, 255, 255)
 text.TextScaled = true
 text.Font = Enum.Font.GothamBold
-text.Text = ""
 text.Parent = bar
 
 --========================
@@ -85,7 +83,7 @@ task.wait(0.5)
 showGui("เปิดใช้งาน Holiday V1.1 แล้ว 🟢", 2)
 
 --========================
--- HEAL SYSTEM
+-- HEAL SYSTEM (วาป)
 --========================
 RunService.RenderStepped:Connect(function()
 	if not healEnabled then return end
@@ -117,18 +115,12 @@ player.CharacterAdded:Connect(function()
 end)
 
 --========================
--- AUTO HEAL (เพิ่มเข้าไปเฉย ๆ)
+-- AUTO HEAL (ใช้แบบเดียวกับ !hp 1)
 --========================
 local function getTool(name)
 	local char = player.Character
 	if not char then return nil end
 	return char:FindFirstChild(name) or player.Backpack:FindFirstChild(name)
-end
-
-local function clickOnce()
-	VirtualInputManager:SendMouseButtonEvent(0,0,0,true,game,0)
-	task.wait()
-	VirtualInputManager:SendMouseButtonEvent(0,0,0,false,game,0)
 end
 
 local function useAutoHeal()
@@ -138,17 +130,23 @@ local function useAutoHeal()
 	local tool = getTool(AUTOHEAL_ITEM)
 
 	if tool and player.Character then
-		tool.Parent = player.Character
-		task.wait(0.15)
+		local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
 
-		pcall(function()
-			tool:Activate()
-		end)
+		if humanoid then
+			humanoid:EquipTool(tool)
+			task.wait(0.2)
 
-		clickOnce()
+			-- 🔥 ใช้เหมือน !hp 1
+			for i = 1, 2 do
+				pcall(function()
+					tool:Activate()
+				end)
+				task.wait(0.1)
+			end
 
-		task.wait(0.1)
-		player.Character:FindFirstChildOfClass("Humanoid"):UnequipTools()
+			task.wait(0.2)
+			humanoid:UnequipTools()
+		end
 	end
 
 	task.wait(2)
@@ -175,7 +173,7 @@ end
 player.CharacterAdded:Connect(setupAutoHeal)
 
 --========================
--- 🔥 ITEM SYSTEM (!hp 1) = ของเดิมคุณ 100%
+-- ITEM SYSTEM (!hp 1) = ของเดิมคุณ
 --========================
 local function runItemScript()
 	local character = player.Character or player.CharacterAdded:Wait()
@@ -227,7 +225,7 @@ local function runItemScript()
 end
 
 --========================
--- COMMAND SYSTEM
+-- COMMAND SYSTEM (ตัวเดียว)
 --========================
 player.Chatted:Connect(function(msg)
 	msg = msg:lower()
