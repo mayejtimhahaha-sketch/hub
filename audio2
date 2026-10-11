@@ -1,4 +1,4 @@
--- Radio Spam GUI (Updated with Name Changer)
+-- Radio Spam By RealHUB (Updated with Name Changer)
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 
@@ -52,7 +52,7 @@ end
 -- ช่องใส่ข้อมูลต่างๆ
 local SongIdBox = MakeTextBox("ใส่ ID เพลงที่นี่...", 35)
 local Messageox = MakeTextBox("ใส่ข้อความที่นี่...", 68)
-local NameBox = MakeTextBox("ใส่ชื่อที่นี่ (RefK0n1)...", 101)
+local NameBox = MakeTextBox("อยากใส่ไรก็ใส่ ...", 101)
 
 local function MakeButton(text, y, color)
     local Button = Instance.new("TextButton")
