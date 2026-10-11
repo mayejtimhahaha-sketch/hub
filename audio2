@@ -1,0 +1,116 @@
+-- Radio Spam GUI (Updated with Name Changer)
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
+local Player = Players.LocalPlayer
+local Event = workspace.Others.Radio1.RemoteEvent
+
+local Running = false
+local DelayTime = 0.2
+
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "RadioSpamGUI"
+Gui.ResetOnSpawn = false
+Gui.Parent = Player:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+-- ขยายความสูงของกรอบขึ้นมาอีกเพื่อให้พอดีกับช่องที่เพิ่มขึ้น
+Frame.Size = UDim2.new(0, 220, 0, 265)
+Frame.Position = UDim2.new(0.5, -110, 0.3, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = Gui
+
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 10)
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundTransparency = 1
+Title.Text = "Radio Spam GUI"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 17
+Title.Parent = Frame
+
+-- ฟังก์ชันสร้างช่องใส่ข้อความ (TextBox)
+local function MakeTextBox(placeholder, y)
+    local TextBox = Instance.new("TextBox")
+    TextBox.Size = UDim2.new(1, -20, 0, 28)
+    TextBox.Position = UDim2.new(0, 10, 0, y)
+    TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    TextBox.TextColor3 = Color3.new(1, 1, 1)
+    TextBox.PlaceholderText = placeholder
+    TextBox.Text = ""
+    TextBox.TextSize = 13
+    TextBox.Parent = Frame
+
+    Instance.new("UICorner", TextBox).CornerRadius = UDim.new(0, 7)
+    return TextBox
+end
+
+-- ช่องใส่ข้อมูลต่างๆ
+local SongIdBox = MakeTextBox("ใส่ ID เพลงที่นี่...", 35)
+local Messageox = MakeTextBox("ใส่ข้อความที่นี่...", 68)
+local NameBox = MakeTextBox("ใส่ชื่อที่นี่ (RefK0n1)...", 101)
+
+local function MakeButton(text, y, color)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, -20, 0, 30)
+    Button.Position = UDim2.new(0, 10, 0, y)
+    Button.BackgroundColor3 = color
+    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.Text = text
+    Button.TextSize = 15
+    Button.Parent = Frame
+
+    Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 7)
+
+    return Button
+end
+
+local Start = MakeButton("เริ่มกดรัว", 139, Color3.fromRGB(30, 140, 80))
+local Stop = MakeButton("หยุด", 174, Color3.fromRGB(180, 55, 55))
+
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, 0, 0, 22)
+Status.Position = UDim2.new(0, 0, 1, -25)
+Status.BackgroundTransparency = 1
+Status.Text = "สถานะ: หยุด"
+Status.TextColor3 = Color3.new(1, 1, 1)
+Status.TextSize = 13
+Status.Parent = Frame
+
+Start.MouseButton1Click:Connect(function()
+    if Running then return end
+    Running = true
+    Status.Text = "สถานะ: กำลังทำงาน"
+
+    -- ดึงค่าจากช่องที่พิมพ์ (ถ้าไม่ได้พิมพ์ จะใช้ค่าสำรองเดิม)
+    local songIdInput = SongIdBox.Text ~= "" and SongIdBox.Text or "135346339935594"
+    local messageInput = Messageox.Text ~= "" and Messageox.Text or "ถามแม่มึงดู"
+    local nameInput = NameBox.Text ~= "" and NameBox.Text or "RefK0n1_0056"
+
+    -- แปลง ID เพลงเป็นตัวเลข
+    local finalSongId = tonumber(songIdInput) or songIdInput
+
+    task.spawn(function()
+        while Running do
+            local Success = pcall(function()
+                Event:FireServer(
+                    finalSongId,
+                    messageInput,
+                    finalSongId,
+                    nameInput
+                )
+            end)
+
+            task.wait(DelayTime)
+        end
+    end)
+end)
+
+Stop.MouseButton1Click:Connect(function()
+    Running = false
+    Status.Text = "สถานะ: หยุดแล้ว"
+end)
