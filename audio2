@@ -9,7 +9,7 @@ local Running = false
 local DelayTime = 0.2
 
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "RadioSpamGUI"
+Gui.Name = "RadioSpamBy.RealHUB"
 Gui.ResetOnSpawn = false
 Gui.Parent = Player:WaitForChild("PlayerGui")
 
